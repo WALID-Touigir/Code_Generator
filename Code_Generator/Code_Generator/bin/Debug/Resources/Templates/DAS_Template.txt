@@ -1,0 +1,12 @@
+﻿using System;
+using System.Data;
+
+namespace {ProjectPrefix}_DataAccessLayer
+{
+    static class clsDataAccessSettings
+    {
+        public static string ConnectionString = "{ConnectionString}"";
+
+
+    }
+}

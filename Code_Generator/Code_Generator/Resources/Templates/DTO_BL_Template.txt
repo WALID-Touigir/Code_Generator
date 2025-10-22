@@ -1,0 +1,175 @@
+﻿using System;
+using System.Data;
+using System.Collections.Generic;
+using System.Collections.Generic;
+
+using {ProjectPrefix}_DataAccessLayer;
+
+namespace {ProjectPrefix}_BusinessLayer
+{
+    public class cls{TableName}
+    {
+        //===============================
+        // ENUMS & PRIVATE FIELDS
+        //===============================
+
+        private enum enMode { AddNew = 0, Update = 1 }
+        private enMode Mode;
+
+        // DTO object that holds all booking data
+
+        public cls{TableName}DTO Info { get; set; }
+{cmpClassLazyValueDeclarations}
+
+        //===============================
+        // CONSTRUCTORS
+        //===============================
+
+        // Empty constructor
+        public cls{TableName}()
+        {
+            Info = new cls{TableName}DTO{
+                {ConstructorDefaults}
+                };
+
+            InitLazyLoaders();
+            Mode = enMode.AddNew;
+        }
+
+        // Full constructor
+        public cls{TableName}(cls{TableName}DTO dto)
+        {
+           Info =  dto ?? new cls{TableName}DTO();
+
+            InitLazyLoaders();
+            Mode = enMode.Update;
+        }
+
+
+
+        private void InitLazyLoaders()
+        {
+{cmpClassAssignementLazyValue}
+
+        }
+        //===============================
+        // FIND METHOD WITH DTO (STATIC) 
+        //===============================
+
+       public static cls{TableName} Find({PrimaryKeyType} {PrimaryKey})
+        {
+            if({PrimaryKey} <=0)
+                return null;
+
+              cls{TableName}DTO _{TableName}Data = cls{TableName}Data.Get{TableName}InfoByID({PrimaryKey});
+            if (_{TableName}Data != null)
+            {
+                return new cls{TableName}(_{TableName}Data);
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        //===============================
+        // SAVE METHOD (INSTANCE)
+        //===============================
+
+        public bool Save()
+        {
+            switch (Mode)
+            {
+                case enMode.AddNew:
+                    if (AddNew{TableName}())
+                    {
+                        Mode = enMode.Update;
+                        return true;
+                    }
+                    break;
+
+                case enMode.Update:
+                    if (Update{TableName}())
+                        return true;
+                    break;
+            }
+
+            return false;
+        }
+
+        // ===============================
+        // PRIVATE ADD / UPDATE METHODS
+        // ===============================
+
+        private bool AddNew{TableName}()
+        {
+            Info.{PrimaryKey} = cls{TableName}Data.Insert{TableName}(Info);
+                return Info.PersonID > 0;
+        }
+
+        private bool Update{TableName}()
+        {
+            return cls{TableName}Data.Update{TableName}(Info);
+        }
+
+
+        // ===============================
+        // DELETE METHOD
+        // ===============================
+
+        public bool Delete()
+        {
+
+            return cls{TableName}Data.Delete{TableName}(Info.{PrimaryKey});
+        }
+
+        //===============================
+        // GetAll METHOD
+        //===============================
+
+        public static List<cls{TableName}DTO> GetAll{TableName}()
+        {
+            return cls{TableName}Data.GetAll{TableName}();
+        }
+        
+        //===============================
+        // OPTIONAL BIT CHECK METHODS
+        //===============================
+
+        
+
+        public static bool  Is{PrimaryKey}Exist({PrimaryKeyType} {PrimaryKey})
+        {
+            return cls{TableName}Data.Is{PrimaryKey}Exist({PrimaryKey});
+        }
+
+
+        
+        public enum {TableName}Column
+         {
+            {CulomnsTableName}
+         }
+
+
+        public enum SearchMode
+        {
+            Anywhere,
+            StartsWith,
+            EndsWith,
+            ExactMatch
+        }
+    
+
+        public static List<cls{TableName}DTO> SearchData({TableName}Column ChosenColumn, string SearchValue, SearchMode Mode = SearchMode.Anywhere)
+        {
+            if (string.IsNullOrWhiteSpace(SearchValue) || !SqlHelper.IsSafeInput(SearchValue))
+                return new List<cls{TableName}DTO>();
+
+
+            return cls{TableName}Data.SearchData(ChosenColumn.ToString(), SearchValue, Mode.ToString());
+        }        
+        
+
+
+    }
+}

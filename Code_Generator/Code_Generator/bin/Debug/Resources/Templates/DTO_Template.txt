@@ -1,0 +1,25 @@
+﻿using System;
+using System.Collections.Generic;
+
+namespace {ProjectPrefix}_DTO
+{
+
+
+       // Flat DTO: contains only the basic fields of the table, used for Add / Update / List operations
+
+       public class cls{TableName}DTO
+       {
+{PropertiesPlaceholders}
+       }
+
+
+
+       // Rich DTO: contains basic fields + relationships (Navigation DTOs), used for display or API responses
+
+       public class cls{TableName}DTODetails : cls{TableName}DTO
+       {
+{CompositionRelationShips}
+       }
+
+
+}

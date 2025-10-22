@@ -1,0 +1,255 @@
+﻿using System;
+using System.Data;
+using System.Collections.Generic;
+using System.Data.SqlClient;
+
+namespace {ProjectPrefix}_DataAccessLayer
+{
+    public class cls{TableName}Data
+    {
+        //===============================
+        // FIND METHOD (RETURN DTO)
+        //===============================
+
+        public static cls{TableName}DTO Get{TableName}InfoByID({PrimaryKeyType} {PrimaryKey})
+        {
+            cls{TableName}DTO dto = null;
+
+            using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
+            {
+                string query = "SELECT * FROM {TableName} WHERE {PrimaryKey} = @{PrimaryKey}";
+                SqlCommand command = new SqlCommand(query, connection);
+                command.Parameters.AddWithValue("@{PrimaryKey}", {PrimaryKey});
+
+                try
+                {
+                    connection.Open();
+                    SqlDataReader reader = command.ExecuteReader();
+
+                    if (reader.Read())
+                    {
+                        dto = new cls{TableName}DTO
+                        {
+                            {FindReaderAssignments}
+                        };
+                    }
+
+                    reader.Close();
+                }
+                catch (Exception ex)
+                {
+                    // TODO: log exception
+                    dto = null;
+                }
+            }
+
+            return dto;
+        }
+
+        //===============================
+        // INSERT METHOD
+        //===============================
+
+        public static {PrimaryKeyType} Insert{TableName}(cls{TableName}DTO Info)
+        {
+            {PrimaryKeyType} {PrimaryKey} = -1;
+
+            using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
+            {
+                string query = @"INSERT INTO {TableName} ({FieldList})
+                                 VALUES ({ParameterList});
+                                 SELECT SCOPE_IDENTITY();";
+
+                SqlCommand command = new SqlCommand(query, connection);
+                {InsertParameterBuilding}
+
+                try
+                {
+                    connection.Open();
+                    object result = command.ExecuteScalar();
+
+                    if (result != null && {PrimaryKeyType}.TryParse(result.ToString(), out {PrimaryKeyType} insertedID))
+                        {PrimaryKey} = insertedID;
+                }
+                catch (Exception ex)
+                {
+                    // TODO: log error
+                }
+            }
+
+            return {PrimaryKey};
+        }
+
+        //===============================
+        // UPDATE METHOD
+        //===============================
+
+        public static bool Update{TableName}(cls{TableName}DTO Info)
+        {
+            int rowsAffected = 0;
+
+            using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
+            {
+                string query = @"UPDATE {TableName}
+                                 SET {UpdateSetList}
+                                 WHERE {PrimaryKey} = @{PrimaryKey}";
+
+                SqlCommand command = new SqlCommand(query, connection);
+                {UpdateParameterBuilding}
+
+                try
+                {
+                    connection.Open();
+                    rowsAffected = command.ExecuteNonQuery();
+                }
+                catch (Exception ex)
+                {
+                    // TODO: log error
+                }
+            }
+
+            return (rowsAffected > 0);
+        }
+
+        //===============================
+        // DELETE METHOD
+        //===============================
+
+        public static bool Delete{TableName}({PrimaryKeyType} {PrimaryKey})
+        {
+            int rowsAffected = 0;
+
+            using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
+            {
+                string query = @"DELETE FROM {TableName} WHERE {PrimaryKey} = @{PrimaryKey}";
+                SqlCommand command = new SqlCommand(query, connection);
+                command.Parameters.AddWithValue("@{PrimaryKey}", {PrimaryKey});
+
+                try
+                {
+                    connection.Open();
+                    rowsAffected = command.ExecuteNonQuery();
+                }
+                catch (Exception ex)
+                {
+                    // TODO: log error
+                }
+            }
+
+            return (rowsAffected > 0);
+        }
+
+        //===============================
+        // GET ALL METHOD
+        //===============================
+
+        public static List<cls{TableName}DTO> GetAll{TableName}()
+        {
+            List<cls{TableName}DTO> list = new List<cls{TableName}DTO>();
+
+            using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
+            {
+                string query = "SELECT * FROM {TableName}";
+                SqlCommand command = new SqlCommand(query, connection);
+
+                try
+                {
+                    connection.Open();
+                    SqlDataReader reader = command.ExecuteReader();
+
+                    while (reader.Read())
+                    {
+                        list.Add(new cls{TableName}DTO
+                        {
+                            {FindReaderAssignments}
+                        });
+                    }
+
+                    reader.Close();
+                }
+                catch (Exception ex)
+                {
+                    // TODO: log error
+                }
+            }
+
+            return list;
+        }
+
+        //===============================
+        // EXIST CHECK METHOD
+        //===============================
+
+        public static bool Is{PrimaryKey}Exist({PrimaryKeyType} {PrimaryKey})
+        {
+            bool isFound = false;
+
+            using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
+            {
+                string query = "SELECT 1 FROM {TableName} WHERE {PrimaryKey} = @{PrimaryKey}";
+                SqlCommand command = new SqlCommand(query, connection);
+                command.Parameters.AddWithValue("@{PrimaryKey}", {PrimaryKey});
+
+                try
+                {
+                    connection.Open();
+                    isFound = command.ExecuteScalar() != null;
+                }
+                catch (Exception ex)
+                {
+                    // TODO: log error
+                }
+            }
+
+            return isFound;
+        }
+
+        //===============================
+        // SEARCH METHOD
+        //===============================
+
+        public static List<cls{TableName}DTO> SearchData(string ColumnName, string SearchValue, string Mode = "Anywhere")
+        {
+            List<cls{TableName}DTO> list = new List<cls{TableName}DTO>();
+
+            using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
+            {
+                string query = $@"
+                    SELECT *
+                    FROM {TableName}
+                    WHERE
+                        (@Mode = 'Anywhere'   AND @ColumnName LIKE '%' + @SearchValue + '%')
+                     OR (@Mode = 'StartsWith' AND @ColumnName LIKE @SearchValue + '%')
+                     OR (@Mode = 'EndsWith'   AND @ColumnName LIKE '%' + @SearchValue)
+                     OR (@Mode = 'ExactMatch' AND @ColumnName = @SearchValue);";
+
+                SqlCommand command = new SqlCommand(query, connection);
+                command.Parameters.AddWithValue("@SearchValue", SearchValue);
+                command.Parameters.AddWithValue("@Mode", Mode);
+                command.Parameters.AddWithValue("@ColumnName", ColumnName);
+
+                try
+                {
+                    connection.Open();
+                    SqlDataReader reader = command.ExecuteReader();
+
+                    while (reader.Read())
+                    {
+                        list.Add(new cls{TableName}DTO
+                        {
+                            {FindReaderAssignments}
+                        });
+                    }
+
+                    reader.Close();
+                }
+                catch (Exception ex)
+                {
+                    // TODO: log error
+                }
+            }
+
+            return list;
+        }
+    }
+}

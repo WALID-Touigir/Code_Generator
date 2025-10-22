@@ -1,0 +1,174 @@
+﻿using System;
+using System.Data;
+using {ProjectPrefix}_DataAccessLayer;
+
+namespace {ProjectPrefix}_BusinessLayer
+{
+    public class cls{TableName}
+    {
+        //===============================
+        // ENUMS & PRIVATE FIELDS
+        //===============================
+
+        private enum enMode { AddNew = 0, Update = 1 }
+        private enMode Mode;
+
+        //===============================
+        // PUBLIC PROPERTIES (Generated from Columns)
+        //===============================
+
+   {PropertiesPlaceholders}
+
+        //===============================
+        // CONSTRUCTORS
+        //===============================
+
+        // Empty constructor
+        public cls{TableName}()
+        {
+            {ConstructorDefaults}
+
+            Mode = enMode.AddNew;
+        }
+
+        // Full constructor
+        public cls{TableName}({ConstructorParameters})
+        {
+           {ConstructorAssignments}
+
+            Mode = enMode.Update;
+        }
+
+        //===============================
+        // FIND METHOD (STATIC)
+        //===============================
+
+       public static cls{TableName} Find({PrimaryKeyType} {PrimaryKey})
+        {
+            // Declare local variables to pass to the DAL via 'out'. 
+            // The 'out' keyword guarantees the DAL method initializes them.
+            {FindVariablesDeclaration} // This placeholder now includes the 'out' keyword
+
+            // Call DAL: Data is retrieved and assigned to the local variables (passed by OUT)
+            if (cls{TableName}Data.Get{TableName}InfoByID({PrimaryKey}, 
+                {FindConstructorOutMapping}))
+            {
+                // Constructor Call: Local variables are now passed by VALUE to the constructor
+                return new cls{TableName}({FindConstructorValueMapping});
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        //===============================
+        // SAVE METHOD (INSTANCE)
+        //===============================
+
+        public bool Save()
+        {
+            switch (Mode)
+            {
+                case enMode.AddNew:
+                    if (AddNew{TableName}())
+                    {
+                        Mode = enMode.Update;
+                        return true;
+                    }
+                    break;
+
+                case enMode.Update:
+                    if (Update{TableName}())
+                        return true;
+                    break;
+            }
+
+            return false;
+        }
+
+        // ===============================
+        // PRIVATE ADD / UPDATE METHODS
+        // ===============================
+
+        private bool AddNew{TableName}()
+        {
+            // Must map instance properties to DAL's parameters
+            this.{PrimaryKey} = cls{TableName}Data.Insert{TableName}(
+            {InsertParametersValueMapping} 
+            );
+            return (this.{PrimaryKey} != -1);
+        }
+
+        private bool Update{TableName}()
+        {
+            // Must map instance properties to DAL's parameters
+            return cls{TableName}Data.Update{TableName}(
+            {UpdateParametersValueMapping} 
+            );
+        }
+
+
+        // ===============================
+        // DELETE METHOD
+        // ===============================
+
+        public bool Delete()
+        {
+            // Use the instance property value
+            return cls{TableName}Data.Delete{TableName}(this.{PrimaryKey});
+        }
+
+        //===============================
+        // GetAll METHOD
+        //===============================
+
+        public static DataTable GetAll{TableName}()
+        {
+            return cls{TableName}Data.GetAll{TableName}();
+        }
+        
+        //===============================
+        // OPTIONAL BIT CHECK METHODS
+        //===============================
+
+        
+
+        public static bool  Is{TableName}Exist({PrimaryKeyType} {PrimaryKey})
+        {
+            return cls{TableName}Data.Is{TableName}Exist({PrimaryKey});
+        }
+
+
+        
+        public enum {TableName}Column
+         {
+            {CulomnsTableName}
+         }
+
+
+        public enum SearchMode
+        {
+            Anywhere,
+            StartsWith,
+            EndsWith,
+            ExactMatch
+        }
+    
+
+        public static DataTable SearchData({TableName}Column ChosenColumn, string SearchValue, SearchMode Mode = SearchMode.Anywhere)
+        {
+            if (string.IsNullOrWhiteSpace(SearchValue) || !SqlHelper.IsSafeInput(SearchValue))
+                return new DataTable();
+
+
+            return cls{TableName}Data.SearchData(ChosenColumn.ToString(), SearchValue, Mode.ToString());
+        }        
+        
+
+
+
+{UniqueFieldMethods}
+
+    }
+}
